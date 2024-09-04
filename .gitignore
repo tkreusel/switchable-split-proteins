@@ -1,6 +1,6 @@
 # own folders
 /stride
-
+/data
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
