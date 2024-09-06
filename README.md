@@ -1,8 +1,6 @@
 # Thermoswitchable split proteins
 
 ## Data structure
-.
-.
 ├── README.md\
 ├── data\
 ├── energy_ calc.ipynb\
