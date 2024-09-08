@@ -42,3 +42,29 @@ def no_secondary(pdb_file, stride_dir = './stride/stride', output_dir = './data/
     secondary_df = stride(pdb_file, stride_dir=stride_dir, output_dir=output_dir, save=save, modify_pdb=modify_pdb, os=os)
     no_sec = secondary_df[secondary_df['code'].isin(['C', 'T'])]
     return no_sec
+
+def pdb_to_seq(pdb):
+    """
+    This function returns the amino acid sequence from a PDB file.
+    """
+    aacodes = {'ALA': 'A', 'ARG': 'R', 'ASN': 'N', 'ASP': 'D', 'CYS': 'C', 'GLN': 'Q', 'GLU': 'E', 'GLY': 'G', 'HIS': 'H', 'ILE': 'I', 'LEU': 'L', 'LYS': 'K', 'MET': 'M', 'PHE': 'F', 'PRO': 'P', 'SER': 'S', 'THR': 'T', 'TRP': 'W', 'TYR': 'Y', 'VAL': 'V'}
+    with open(pdb, 'r') as f:
+        seqdict = {}
+        lines = f.readlines()
+        for line in lines:
+            if line.startswith('ATOM'):
+                seqdict[int(line.split()[5])] = line.split()[3]
+        seq3letter = [seqdict[i] for i in seqdict.keys()]
+        seq = [aacodes[i] for i in seq3letter]
+        return ''.join(seq)
+
+def pdb_to_fasta(pdb, fasta_path = None):
+    import os
+    """
+    This function returns the amino acid sequence from a PDB file in FASTA format.
+    """
+    if fasta_path == None:
+        fasta_path = pdb.replace('.pdb', '.fasta')
+    with open(fasta_path, 'w') as f:
+        f.write('>' + os.path.basename(pdb).replace('.pdb', '') + '\n')
+        f.write(pdb_to_seq(pdb))
