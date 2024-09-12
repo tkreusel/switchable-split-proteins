@@ -49,7 +49,7 @@ def conservation_score(pdb :str, Pfam_A : str = './data/Pfam/Pfam-A.hmm', hmmsca
     pdb_to_fasta(pdb)
     fasta_path = pdb.replace('.pdb', '.fasta')
     if family == None:
-        subprocess.run(['wsl', '--tblout', hmmscanout, 'hmmscan', 'Pfam-A.hmm', fasta_path], stdout=subprocess.PIPE, text=True)
+        subprocess.run(['wsl', 'hmmscan', '--tblout', hmmscanout, Pfam_A, fasta_path])
         with open('./data/result.tbl', 'r') as f:
             lines = f.readlines()
             for line in lines:
@@ -62,6 +62,7 @@ def conservation_score(pdb :str, Pfam_A : str = './data/Pfam/Pfam-A.hmm', hmmsca
                         print('No significant Pfam family found.')
                         break
     ######## missing: use found family msa to align protein fasta to
+    # placeholder:
     if family == 'PF00107':
         family = './data/Pfam/PF00107.alignment.full'
     # align protein sequence to Pfam family MSA using clustal omega
@@ -75,7 +76,7 @@ def conservation_score(pdb :str, Pfam_A : str = './data/Pfam/Pfam-A.hmm', hmmsca
     for n_col, col in enumerate(alignment_array_filtered.T):            # calculate amino acid proportions for each column
         col_no_gaps = np.char.upper(col[col != '-'])
         aa_percs = np.array([np.sum(col_no_gaps == aa)/len(col_no_gaps) for aa in aa_order])    
-        aa_prop_array[:, n_col] = aa_percs
+        aa_prop_array[:, n_col] = aa_percs                              # missing: deal with gaps (many gaps -> low conservation probably)
     conservation_scores = np.zeros(len(columns))
     for n_col, col in enumerate(aa_prop_array.T):
         conservation_scores[n_col] = jsd(col, blosum62_background)  # compute Jensen-Shannon divergence for each column
