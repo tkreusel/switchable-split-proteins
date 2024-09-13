@@ -13,6 +13,20 @@ def pdb_to_seq(pdb):
         seq = [aacodes[i] for i in seq3letter]
         return ''.join(seq)
 
+def find_nearest(pdb, n_nearest):
+    import numpy as np
+    from scipy.spatial import distance
+    """
+    This function finds the n_nearest atoms to a given atom in a pdb file.
+    """
+    with open(pdb, 'r') as f:
+        lines = [line for line in f if line.startswith('ATOM') and line[13:15] == 'CA']
+    coords = np.array([line.split()[6:9] for line in lines], dtype=float)
+    distance_matrix = distance.cdist(coords, coords)
+    nearest_ind = np.array([np.argsort(distance_matrix[i])[1:n_nearest+1] for i in range(len(distance_matrix))])
+    nearest_dist = np.array([np.sort(distance_matrix[i])[1:n_nearest+1] for i in range(len(distance_matrix))])
+    return nearest_ind, nearest_dist
+
 def pdb_to_fasta(pdb, fasta_path = None):
     import os
     """
@@ -35,7 +49,7 @@ def jsd(p, q):
     jsd = 0.5 * np.sum(rel_entr(p, m)) + 0.5 * np.sum(rel_entr(q, m))
     return jsd
 
-def conservation_score(pdb :str, Pfam_A : str = './data/Pfam/Pfam-A.hmm', hmmscanout : str = './data/result.tbl', family = None):
+def conservation_score(pdb :str, Pfam_A : str = './data/Pfam/Pfam-A.hmm', hmmscanout : str = './data/result.tbl', family = None, include_neighbors : bool = False, decay = 0.4, alpha = 0.6, n_nearest = 10):
     """
     This function calculates the conservation score of each residue in a PDB file. 
     """
@@ -80,4 +94,13 @@ def conservation_score(pdb :str, Pfam_A : str = './data/Pfam/Pfam-A.hmm', hmmsca
     conservation_scores = np.zeros(len(columns))
     for n_col, col in enumerate(aa_prop_array.T):
         conservation_scores[n_col] = jsd(col, blosum62_background)  # compute Jensen-Shannon divergence for each column
-    return conservation_scores
+    if include_neighbors:
+        ind,dist = find_nearest(pdb, n_nearest)
+        weights = np.array([np.exp(-decay*row) for row in dist])
+        weightsums = np.sum(weights, axis = 1)
+        neighbors = conservation_scores[ind]
+        neighbors_weighted = np.sum(neighbors*weights, axis = 1)/weightsums
+        conservation_scores_neighbors = alpha * conservation_scores + (1-alpha) * neighbors_weighted
+        return conservation_scores, conservation_scores_neighbors
+    else:
+        return conservation_scores
