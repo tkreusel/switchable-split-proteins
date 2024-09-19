@@ -22,7 +22,7 @@ def split_energy(pdb:str, window = 3):
         os.remove(f"{pdb}.clean.pdb")
 
     split_energies = []  
-    for i in range(1, n_residues-1):
+    for i in range(1, n_residues):
        # Create Pose A (residues 1 to i)
         pose_A = Pose()
         pose_A.assign(pose) 
