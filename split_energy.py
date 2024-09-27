@@ -12,7 +12,7 @@ def split_energy(pdb:str, window = 3):
     pose = pose_from_rcsb(pdb) # Load the protein structure from PDB
     n_residues = pose.total_residue() # Get the total number of residues
     scorefxn = get_score_function(True)  # Get a scoring function (standard Rosetta energy function)
-    scorefxn.set_weight(dslf_fa13, 0)
+    scorefxn.set_weight(dslf_fa13, 0) #remove disulfide bond energy term
     E_nat = scorefxn(pose) # Calculate the total energy of the full protein
 
      # Check if the file exists and delete it
