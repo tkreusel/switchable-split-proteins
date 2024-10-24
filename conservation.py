@@ -79,8 +79,10 @@ def conservation_score(pdb :str, Pfam_A : str = './data/Pfam/Pfam-A.hmm', hmmsca
     # placeholder:
     if family == 'PF00107':
         family = './data/Pfam/PF00107.alignment.full'
+    if family == 'PF13354':
+        family = './data/Pfam/PF13354.alignment.full'
     # align protein sequence to Pfam family MSA using clustal omega
-    subprocess.run(['wsl', 'clustalo', '--p1', family, '--p2', fasta_path, '-o', './data/output_alignment.fasta', '--threads=1'], stdout = subprocess.PIPE, text = True)
+    subprocess.run(['wsl', 'clustalo', '--p1', family, '--p2', fasta_path, '-o', './data/Pfam/output_alignment.fasta', '--threads=1', '--force'], stdout = subprocess.PIPE, text = True)
     alignment = AlignIO.read('./data/Pfam/output_alignment.fasta', 'fasta')   # read msa using biopython
     alignment_array = np.array([list(rec.seq) for rec in alignment], dtype = 'U1')
     prot_seq = alignment[-1].seq    # last sequence is protein of interest
@@ -104,3 +106,5 @@ def conservation_score(pdb :str, Pfam_A : str = './data/Pfam/Pfam-A.hmm', hmmsca
         return conservation_scores, conservation_scores_neighbors
     else:
         return conservation_scores
+    
+    ### to do: gaps, use multiple family alignments, domain specific hmmscan to find families for specific parts of protein
