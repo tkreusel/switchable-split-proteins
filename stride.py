@@ -1,4 +1,4 @@
-def stride(pdb_file, stride_dir = './stride/stride', output_dir = './data/strideout', save = False, modify_pdb = False, system = 'windows'):
+def stride(pdb_file, stride_dir = './stride/stride', output_dir = './data/strideout', save = False, modify_pdb = False, system = 'mac'):
     """
     This function runs the Stride program on a PDB file and returns the secondary structure information and solvent accessable area of each residue. The output is a pandas dataframe. If save = True, the output is saved as a csv file in the specified output directory.
     """
@@ -8,7 +8,7 @@ def stride(pdb_file, stride_dir = './stride/stride', output_dir = './data/stride
     if system == 'windows':
         result = subprocess.run(['wsl', stride_dir, pdb_file], stdout=subprocess.PIPE, text=True)
     elif system == 'mac':
-        result = subprocess.run([stride_dir, pdb_file], stdout=subprocess.PIPE, text=True)
+        result = subprocess.run(['stride', pdb_file], stdout=subprocess.PIPE, text=True)
     secondary = [line for line in result.stdout.splitlines() if line.startswith('ASG')]
     data_str = "n".join(secondary)
     if len(secondary[0].split()) == 10:
