@@ -1,3 +1,6 @@
 module load devel/miniconda/3
 source $MINICONDA_HOME/etc/profile.d/conda.sh
 conda activate main
+
+
+conda activate environ
