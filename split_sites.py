@@ -85,4 +85,4 @@ def split_sites_func(pdb):
                     bool.append(True)
             if not any(bool):
                 sites_loop_filtered.remove(i)
-    return sites_loop_filtered
+    return sites_loop_filtered, pose

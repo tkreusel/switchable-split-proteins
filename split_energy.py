@@ -5,6 +5,7 @@ from pyrosetta.teaching import *
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MultipleLocator
 from pyrosetta.toolbox import pose_from_rcsb
 from scipy.signal import argrelextrema
 import os
@@ -47,7 +48,7 @@ def split_energy(pdb:str, window = 3):
 
     return pose, se_profile
 
-def energy_intervals(se_profile:pd.DataFrame, order:int = 15):
+def energy_intervals(se_profile:pd.DataFrame, order:int = 20):
     # Calculate numeric derivative and identify low gradient residues
     se_profile['Derivative'] = np.gradient(se_profile['Smoothed Split Energy'].values, se_profile['Residue'].values)
     selected_residues = se_profile[np.abs(se_profile['Derivative']) < 0.5]['Residue'].values  # Select residues where the derivative is less than the threshold
@@ -127,6 +128,15 @@ def plot(se_profile:pd.DataFrame, merged_intervals:np.ndarray=np.empty((0,2)), f
         ax[0].set_xlabel('Residue')
         ax[0].set_ylabel('Smoothed Split Energy')
         ax[0].set_title('Split Energy Profile with Extended Intervals')
+        ax[0].xaxis.set_major_locator(MultipleLocator(10))
+        ax[0].tick_params(axis='x', rotation=90)
+        for tick in ax[0].xaxis.get_majorticklocs():
+            ax[0].axvline(x=tick, color='grey', linestyle='--', alpha=0.5)
+        for tick in [7, 42, 47, 86, 133]:
+            ax[0].axvline(x=tick, color='black', linestyle='--', alpha=0.5)
+
+
+
         handles, labels = ax[0].get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
         ax[0].legend(by_label.values(), by_label.keys())
@@ -137,6 +147,13 @@ def plot(se_profile:pd.DataFrame, merged_intervals:np.ndarray=np.empty((0,2)), f
         ax[1].set_xlabel('Residue')
         ax[1].set_ylabel('Smoothed Split Energy')
         ax[1].set_title('Split Energy Profile with Extendend Intervals (without Local Minima)')
+        ax[1].xaxis.set_major_locator(MultipleLocator(10))
+        ax[1].tick_params(axis='x', rotation=90)
+        for tick in ax[1].xaxis.get_majorticklocs():
+            ax[1].axvline(x=tick, color='grey', linestyle='--', alpha=0.5)
+        for tick in [7, 42, 47, 86, 133]:
+            ax[1].axvline(x=tick, color='black', linestyle='--', alpha=0.5)
+            
         handles, labels = ax[1].get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
         ax[1].legend(by_label.values(), by_label.keys())

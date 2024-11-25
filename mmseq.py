@@ -6,6 +6,13 @@ def find_nearest(pdb, n_nearest):
     """
     with open(pdb, 'r') as f:
         lines = [line for line in f if line.startswith('ATOM') and line[13:15] == 'CA']
+        acids = []
+        for line in f:
+            if line.startswith('ATOM') and line[13:15] == 'CA':
+                acids.append(line)
+            elif line.startswith('TER'):
+                pass
+            
     coords = np.array([line.split()[6:9] for line in lines], dtype=float)
     distance_matrix = distance.cdist(coords, coords)
     nearest_ind = np.array([np.argsort(distance_matrix[i])[1:n_nearest+1] for i in range(len(distance_matrix))])
@@ -22,27 +29,23 @@ def jsd(p, q):
     jsd = 0.5 * np.sum(rel_entr(p, m)) + 0.5 * np.sum(rel_entr(q, m))
     return jsd
 
-def mmseqs_cons(input_fasta : str, database_fasta : str, input_pdb : str = None, max_seqs:int = 1000, include_neighbors:bool=False, n_nearest:int=5, decay:float=0.5, alpha:float=0.5, output_path = './data/mmseqs_data/alignment_msa.fasta', method = 'jsd'):
+def calc_conservation(msa,input_pdb = None,remove_last_character = True, include_neighbors:bool=False, n_nearest:int=5, decay:float=0.5, alpha:float=0.5, output_path = './data/mmseqs_data/alignment_msa.fasta', method = 'jsd'):
     """
-    This function calculates a conservation score for each residue in an input protein (fasta) using the provided database (fasta). If use_neighbors is set to True it also requires an input_pdb to calculate conservation using n_nearest spatial neighbors weighted by distance with a decay. Alpha determines how much the neighbors affect the scoring, proposed by https://academic.oup.com/bioinformatics/article/23/15/1875/203579 . Score is calculated either by Jensen-Shannon divergence (jsd) or Kullback-Leibler divergence (kl) (method parameter)."""
-    import subprocess
+    This function calculates conservation scores for a protein given an msa (fasta) where the protein of interest is in first position. If use_neighbors is set to True it also requires an input_pdb to calculate conservation using n_nearest spatial neighbors weighted by distance with a decay. Alpha determines how much the neighbors affect the scoring, proposed by https://academic.oup.com/bioinformatics/article/23/15/1875/203579 . Score is calculated either by Jensen-Shannon divergence (jsd) or Kullback-Leibler divergence (kl) (method parameter)."""
     import numpy as np
-    import os
     from Bio import AlignIO
     from scipy.special import rel_entr
-    if not os.path.exists('./data/mmseqs_data'):
-        os.makedirs('./data/mmseqs_data')
-        subprocess.run(["mmseqs","createdb",database_fasta,"./data/mmseqs_data/database_db"])                #create mmseq db file from fasta (database)
-    subprocess.run(["mmseqs","createdb", input_fasta, "./data/mmseqs_data/protein_db"])   
-    subprocess.run(["mmseqs","search","./data/mmseqs_data/protein_db","./data/mmseqs_data/database_db","./data/mmseqs_data/result","./data/mmseqs_data/tmp","--max-seqs",str(max_seqs)])
-    subprocess.run(["mmseqs","result2msa","./data/mmseqs_data/protein_db","./data/mmseqs_data/database_db","./data/mmseqs_data/result",output_path,"--msa-format-mode", "2"])     # generate multiple sequence alignment from search result
-    with open(output_path, "rb+") as file:     # remove NUL character in fasta
-        file.seek(-1, 2)       # move pointer to last byte and go back one more
-        file.truncate()
+    if remove_last_character is True:
+        with open(msa, "rb+") as file:     # remove NUL character in fasta
+            file.seek(-1, 2)       # move pointer to last byte
+            last_byte = file.read(1)
+            if last_byte == b'\x00':
+                file.seek(-1, 2)  # Move back again if you need to truncate
+                file.truncate()
 
         aa_order = ['A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P', 'S', 'T', 'W', 'Y', 'V']
     blosum62_background = np.array([0.078, 0.051, 0.041, 0.052, 0.024, 0.034, 0.059, 0.083, 0.025, 0.062, 0.092, 0.056, 0.024, 0.044, 0.043, 0.059, 0.055, 0.014, 0.034, 0.072])
-    alignment = AlignIO.read('./data/mmseqs_data/alignment_msa.fasta', 'fasta')   # read msa using biopython
+    alignment = AlignIO.read(msa, 'fasta')   # read msa using biopython
     alignment_array = np.array([list(rec.seq) for rec in alignment], dtype = 'U1')
     aa_prop_array = np.zeros((20, alignment_array.shape[1]))   # initiate array to store amino acid proportions
     for n_col, col in enumerate(alignment_array.T):            # calculate amino acid proportions for each column
