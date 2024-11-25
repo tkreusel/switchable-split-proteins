@@ -29,7 +29,7 @@ def jsd(p, q):
     jsd = 0.5 * np.sum(rel_entr(p, m)) + 0.5 * np.sum(rel_entr(q, m))
     return jsd
 
-def calc_conservation(msa,input_pdb = None,remove_last_character = True, include_neighbors:bool=False, n_nearest:int=5, decay:float=0.5, alpha:float=0.5, output_path = './data/mmseqs_data/alignment_msa.fasta', method = 'jsd'):
+def calc_conservation(msa,input_pdb = None,remove_last_character = True, include_neighbors:bool=False, n_nearest:int=5, decay:float=0.5, alpha:float=0.5, method = 'jsd'):
     """
     This function calculates conservation scores for a protein given an msa (fasta) where the protein of interest is in first position. If use_neighbors is set to True it also requires an input_pdb to calculate conservation using n_nearest spatial neighbors weighted by distance with a decay. Alpha determines how much the neighbors affect the scoring, proposed by https://academic.oup.com/bioinformatics/article/23/15/1875/203579 . Score is calculated either by Jensen-Shannon divergence (jsd) or Kullback-Leibler divergence (kl) (method parameter)."""
     import numpy as np
