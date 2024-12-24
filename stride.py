@@ -5,10 +5,7 @@ def stride(pdb_file, stride_dir = './stride/stride', output_dir = './data/stride
     import subprocess
     import pandas as pd
     import os
-    if system == 'windows':
-        result = subprocess.run(['wsl', stride_dir, pdb_file], stdout=subprocess.PIPE, text=True)
-    elif system == 'mac':
-        result = subprocess.run(['stride', pdb_file], stdout=subprocess.PIPE, text=True)
+    result = subprocess.run(['stride', pdb_file], stdout=subprocess.PIPE, text=True)
     secondary = [line for line in result.stdout.splitlines() if line.startswith('ASG')]
     data_str = "n".join(secondary)
     if len(secondary[0].split()) == 10:

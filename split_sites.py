@@ -15,7 +15,6 @@ from stride import no_secondary
 from mmseq import calc_conservation
 
 def split_sites_func(pdb, msa, conservation_threshold = 0.2):
-    pdb = f'./data/{pdb}.pdb'
     temp = stride(pdb, system='mac', stride_dir='./stride')
     temp[['resnum', 'saa']] = temp[['resnum', 'saa']].astype('float64')
     pose, se_pose = split_energy(pdb)
@@ -25,9 +24,9 @@ def split_sites_func(pdb, msa, conservation_threshold = 0.2):
     for i in range(1,pose.total_residue()):
         sites = (i, i+1)
         if (temp.loc[temp['resnum']==sites[0], 'saa'].values[0] > 30) and (temp.loc[temp['resnum']==sites[1], 'saa'].values[0] > 30):
-            if conservation_scores[sites[i]] <= conservation_threshold:
+            if conservation_scores[sites[0]] <= conservation_threshold:
                 if (temp.loc[temp['resnum']==sites[0], 'code'].isin(['C','T']).iloc[0]) | (temp.loc[temp['resnum']==sites[1], 'code'].isin(['C','T']).iloc[0]):
-                split_sites.append(sites)
+                    split_sites.append(sites)
     loops = []
     start = None
     for i in range(1,pose.total_residue()+1):
